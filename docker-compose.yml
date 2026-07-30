@@ -1,0 +1,124 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cricket Tournament Platform — Local Development Stack
+#
+# Services:
+#   mongodb   — Primary database (MongoDB 7.0)
+#   redis     — Cache, sessions, Celery broker (Redis 7.2)
+#   backend   — FastAPI application (Python 3.13)
+#   frontend  — React SPA dev server (Node 22)
+#
+# Usage:
+#   docker-compose up             # start all services
+#   docker-compose up backend     # start only backend + deps
+#   docker-compose logs -f backend
+# ─────────────────────────────────────────────────────────────────────────────
+
+networks:
+  cricket_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: cricket_mongodb
+    restart: unless-stopped
+    networks:
+      - cricket_net
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: cricket_platform
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: cricket_redis
+    restart: unless-stopped
+    networks:
+      - cricket_net
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ── Backend ───────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: cricket_backend
+    restart: unless-stopped
+    networks:
+      - cricket_net
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      HOST: 0.0.0.0
+      PORT: 8000
+      RELOAD: "false"
+      ENVIRONMENT: development
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "python", "scripts/health_check.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Frontend Dev Server ───────────────────────────────────────────────────
+  frontend:
+    image: node:22-alpine
+    container_name: cricket_frontend
+    restart: unless-stopped
+    networks:
+      - cricket_net
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_WS_BASE_URL: ws://localhost:8000/api/v1
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend

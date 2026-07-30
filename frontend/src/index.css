@@ -1,0 +1,202 @@
+/* TITAN Cricket Auction — Global Styles */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Titan CSS Custom Properties ────────────────────────────────────────────── */
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Surface scale — light theme */
+    --surface-void:    #F8FAFC;
+    --surface-base:    #FFFFFF;
+    --surface-deep:    #FFFFFF;
+    --surface-raised:  #FFFFFF;
+    --surface-float:   #F1F5F9;
+    --surface-overlay: #E8EDF5;
+    --surface-border:  #E2E8F0;
+
+    /* Accents */
+    --gold-bright:     #F5B301;
+    --sport-vivid:     #059669;
+    --danger-vivid:    #DC2626;
+    --warn-vivid:      #D97706;
+
+    /* Text — dark on light */
+    --text-primary:    #0F172A;
+    --text-secondary:  #475569;
+    --text-tertiary:   #94A3B8;
+    --text-disabled:   #CBD5E1;
+    --text-inverse:    #FFFFFF;
+
+    /* Layout dimensions */
+    --sidebar-width:              240px;
+    --sidebar-admin-width:        260px;
+    --sidebar-collapsed-width:    56px;
+    --header-height:              60px;
+    --header-auction-height:      52px;
+    --header-presentation-height: 80px;
+    --bid-bar-height:             72px;
+    --purse-bar-height:           160px;
+  }
+
+  /* ── Navy sidebar / dark sections ──────────────────────────────────────────── */
+  .titan-navy {
+    color-scheme: dark;
+    --surface-void:    #081733;
+    --surface-base:    #0B1F4D;
+    --surface-deep:    #0B1F4D;
+    --surface-raised:  #162860;
+    --surface-float:   rgba(255,255,255,0.07);
+    --surface-overlay: rgba(255,255,255,0.13);
+    --surface-border:  rgba(255,255,255,0.08);
+    --text-primary:    #F1F5F9;
+    --text-secondary:  #94A3B8;
+    --text-tertiary:   #64748B;
+    --text-disabled:   #3A4A6B;
+    --gold-bright:     #F5B301;
+    background: linear-gradient(180deg, #071430 0%, #0B1F4D 40%, #0D2255 100%);
+    color:       #F1F5F9;
+  }
+
+  /* ── Base reset ─────────────────────────────────────────────────────────── */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    height: 100%;
+    background-color: var(--surface-void);
+    color: var(--text-primary);
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--surface-void);
+    color: var(--text-primary);
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* ── Custom scrollbars ──────────────────────────────────────────────────── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-border);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-overlay);
+  }
+
+  /* ── Focus visible ──────────────────────────────────────────────────────── */
+  :focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── Text selection ─────────────────────────────────────────────────────── */
+  ::selection {
+    background-color: rgba(201, 162, 39, 0.2);
+    color: var(--text-primary);
+  }
+
+  /* ── Reduced motion ─────────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Custom utilities ───────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Glass morphism — adapts to section theme */
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .titan-navy .glass {
+    background: rgba(15, 27, 60, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Gold glow border */
+  .border-gold-glow {
+    border-color: rgba(201, 162, 39, 0.4);
+    box-shadow: 0 0 8px rgba(201, 162, 39, 0.15);
+  }
+
+  .titan-navy .border-gold-glow {
+    border-color: rgba(245, 200, 66, 0.4);
+    box-shadow: 0 0 8px rgba(245, 200, 66, 0.2);
+  }
+
+  /* Thin scrollbar for sidebar */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Content height helpers tied to CSS vars */
+  .h-content {
+    height: calc(100vh - var(--header-height));
+  }
+
+  .h-content-auction {
+    height: calc(100vh - var(--header-auction-height) - var(--bid-bar-height));
+  }
+
+  .h-content-presentation {
+    height: calc(100vh - var(--header-presentation-height) - var(--purse-bar-height));
+  }
+
+  /* Sidebar offset for main content */
+  .ml-sidebar {
+    margin-left: var(--sidebar-width);
+  }
+
+  .ml-sidebar-admin {
+    margin-left: var(--sidebar-admin-width);
+  }
+
+  .ml-sidebar-collapsed {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+
+  /* Premium card shadow */
+  .card-shadow {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .card-shadow-md {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+}
