@@ -82,6 +82,17 @@ export interface ToastEvent {
   message: string;
 }
 
+const _envWsUrl = import.meta.env.VITE_WS_BASE_URL;
+if (!_envWsUrl) {
+  throw new Error(
+    "[Cricket Platform] VITE_WS_BASE_URL is not set.\n" +
+    "  • Development: add it to frontend/.env.local\n" +
+    "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
+    "  Example value: wss://titan-cricket-backend.onrender.com/api/v1"
+  );
+}
+const WS_BASE: string = _envWsUrl;
+
 const INITIAL: AuctionState = {
   status: "SCHEDULED",
   currentPlayer: null,
@@ -149,7 +160,6 @@ export function useAuctionSocket(tournamentId: string) {
   const connect = useCallback(() => {
     if (!token || deadRef.current) return;
 
-    const WS_BASE = import.meta.env.VITE_WS_BASE_URL ?? "ws://localhost:8000/api/v1";
     const url = `${WS_BASE}/ws/auction/${tournamentId}?token=${token}`;
     const ws = new WebSocket(url);
     wsRef.current = ws;

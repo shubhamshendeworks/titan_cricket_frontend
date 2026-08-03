@@ -14,7 +14,16 @@ import axios, {
 import type { ApiResponse } from "@/types";
 import { useAuthStore } from "@/store/authStore";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const _envApiUrl = import.meta.env.VITE_API_BASE_URL;
+if (!_envApiUrl) {
+  throw new Error(
+    "[Cricket Platform] VITE_API_BASE_URL is not set.\n" +
+    "  • Development: add it to frontend/.env.local\n" +
+    "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
+    "  Example value: https://titan-cricket-backend.onrender.com/api/v1"
+  );
+}
+const BASE_URL: string = _envApiUrl;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
