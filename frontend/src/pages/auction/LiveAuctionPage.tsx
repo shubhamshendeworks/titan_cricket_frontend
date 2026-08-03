@@ -24,7 +24,6 @@ import {
   XCircle,
   Square,
   ChevronLeft,
-  Wallet,
   Users,
   RotateCcw,
   Trophy,
@@ -336,53 +335,6 @@ function TeamsPanel({ teams }: { teams: TeamPurse[] }) {
   );
 }
 
-// ── Admin bid override ────────────────────────────────────────────────────────
-
-function AdminBidPanel({
-  minNextBid,
-  onBid,
-  active,
-}: {
-  minNextBid: number;
-  onBid: (amount: number) => void;
-  active: boolean;
-}) {
-  const [val, setVal] = useState("");
-
-  useEffect(() => {
-    setVal(String(minNextBid));
-  }, [minNextBid]);
-
-  return (
-    <div className="bg-slate-800/60 border border-white/10 rounded-2xl p-4 space-y-3">
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center gap-2">
-        <Wallet className="h-3.5 w-3.5" />
-        Override Bid
-      </p>
-      <div className="flex gap-2">
-        <input
-          type="number"
-          value={val}
-          min={minNextBid}
-          onChange={(e) => setVal(e.target.value)}
-          disabled={!active}
-          className="flex-1 bg-slate-700 border border-slate-600 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-40"
-          placeholder={`≥${minNextBid}`}
-        />
-        <button
-          type="button"
-          disabled={!active || !val || Number(val) < minNextBid}
-          onClick={() => { const n = Number(val); if (n >= minNextBid) onBid(n); }}
-          className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold transition-colors"
-        >
-          Bid
-        </button>
-      </div>
-      <p className="text-xs text-slate-500">Min: {fmt(minNextBid)}</p>
-    </div>
-  );
-}
-
 // ── Toast notifications ───────────────────────────────────────────────────────
 
 const TOAST_CLS: Record<string, string> = {
@@ -453,7 +405,7 @@ export function LiveAuctionPage() {
 
   const {
     status, currentPlayer, currentBid, currentBidderName,
-    timerSeconds, queueRemaining, minNextBid, teams, bidsCount,
+    timerSeconds, queueRemaining, teams, bidsCount,
     playersSold, playersUnsold,
   } = state;
 

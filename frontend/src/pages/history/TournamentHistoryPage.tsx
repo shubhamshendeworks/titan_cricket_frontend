@@ -12,7 +12,6 @@ import {
   Medal,
   Calendar,
   Users,
-  Shirt,
   Gavel,
   ChevronDown,
   ChevronUp,
@@ -42,11 +41,6 @@ interface Tournament {
   created_at: string;
 }
 
-interface TournamentDetail extends Tournament {
-  total_players?: number;
-  total_matches?: number;
-}
-
 interface TTeam {
   id: string;
   name: string;
@@ -68,6 +62,11 @@ function resolveName(
   return fallback ?? "—";
 }
 
+function resolveLogo(tbtMap: TeamsByTournament, tournamentId: string, teamId: string | null): string | null {
+  if (!teamId) return null;
+  return tbtMap[tournamentId]?.[teamId]?.logo_url ?? null;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function fmt(iso: string | null): string {
@@ -84,6 +83,8 @@ function getYear(iso: string | null): string {
 
 function ChampionCard({ t, rank, tbt }: { t: Tournament; rank: number; tbt: TeamsByTournament }) {
   const isChampion = rank === 1;
+  const winnerLogo = resolveLogo(tbt, t.id, t.winner_team_id);
+  const runnerUpLogo = resolveLogo(tbt, t.id, t.runner_up_team_id);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -138,11 +139,14 @@ function ChampionCard({ t, rank, tbt }: { t: Tournament; rank: number; tbt: Team
 
       {/* Winner info */}
       <div className="bg-white px-5 pt-4 pb-5 -mt-6 relative z-10 mx-3 rounded-xl border border-slate-100 shadow-sm">
-        {t.winner_team_name ? (
+        {(t.winner_team_id || t.winner_team_name) ? (
           <>
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                <Trophy className="h-4 w-4 text-amber-500" />
+              <div className="h-8 w-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 overflow-hidden">
+                {winnerLogo
+                  ? <img src={winnerLogo} alt="" className="h-full w-full object-contain p-0.5" />
+                  : <Trophy className="h-4 w-4 text-amber-500" />
+                }
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Champion</p>
@@ -153,8 +157,11 @@ function ChampionCard({ t, rank, tbt }: { t: Tournament; rank: number; tbt: Team
             </div>
             {(t.runner_up_team_id || t.runner_up_team_name) && (
               <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
-                <div className="h-8 w-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-                  <Medal className="h-4 w-4 text-slate-400" />
+                <div className="h-8 w-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                  {runnerUpLogo
+                    ? <img src={runnerUpLogo} alt="" className="h-full w-full object-contain p-0.5" />
+                    : <Medal className="h-4 w-4 text-slate-400" />
+                  }
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Runner-up</p>
@@ -313,7 +320,6 @@ export function TournamentHistoryPage() {
   const allTournaments = allQ.data ?? [];
   const withWinners = completed.filter((t) => t.winner_team_id || t.winner_team_name);
   const withoutWinners = completed.filter((t) => !t.winner_team_id && !t.winner_team_name);
-  const active = allTournaments.filter((t) => t.status !== "COMPLETED");
 
   // Fetch live teams for all completed tournaments so winner names are always current
   const historyTeamsQ = useQuery<TeamsByTournament>({

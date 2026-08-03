@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTournament } from "@/contexts/TournamentContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,7 +25,6 @@ import {
   Trash2,
   CameraIcon,
   BarChart2,
-  ChevronDown,
   Eye,
   UserPlus,
 } from "lucide-react";
@@ -68,11 +67,6 @@ export interface Player {
 interface PlayerPage {
   items: Player[];
   total: number;
-}
-
-interface TournamentItem {
-  id: string;
-  name: string;
 }
 
 interface PlayerStat {
@@ -158,13 +152,6 @@ async function fetchPlayers(tournamentId: string, auctionEligibleOnly = false): 
   return data.data;
 }
 
-async function fetchAllTournaments(): Promise<TournamentItem[]> {
-  const { data } = await apiClient.get<{ data: { items: TournamentItem[] } }>(
-    "/tournaments?page_size=100"
-  );
-  return data.data.items;
-}
-
 // ── Formatters ─────────────────────────────────────────────────────────────────
 
 function formatPoints(pts: number): string {
@@ -240,51 +227,6 @@ const ALL_BATTING: BattingStyle[] = ["RIGHT_HAND", "LEFT_HAND"];
 const ALL_BOWLING: BowlingStyle[] = ["N/A", "RIGHT_ARM_FAST", "RIGHT_ARM_MEDIUM", "RIGHT_ARM_SPIN", "LEFT_ARM_FAST", "LEFT_ARM_MEDIUM", "LEFT_ARM_SPIN"];
 
 // ── Tournament selector ────────────────────────────────────────────────────────
-
-function TournamentSelectorView() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState("");
-  const q = useQuery<TournamentItem[]>({
-    queryKey: ["tournaments-list"],
-    queryFn: fetchAllTournaments,
-    staleTime: 60_000,
-  });
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-24 px-8 text-center"
-    >
-      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center mb-6 shadow-md">
-        <User className="h-10 w-10 text-white" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-2">Select a Tournament</h3>
-      <p className="text-sm text-slate-500 max-w-sm mb-8">
-        Players are scoped to a tournament. Pick one to view and manage its player pool.
-      </p>
-      <div className="flex gap-3 w-full max-w-sm">
-        <div className="relative flex-1">
-          <select
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            <option value="">— Select tournament —</option>
-            {q.data?.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-        </div>
-        <button
-          disabled={!selected}
-          onClick={() => navigate(`/tournaments/${selected}/players`)}
-          className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors"
-        >
-          Go
-        </button>
-      </div>
-    </motion.div>
-  );
-}
 
 // ── Player form body ───────────────────────────────────────────────────────────
 

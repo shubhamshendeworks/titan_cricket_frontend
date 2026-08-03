@@ -22,7 +22,6 @@ import {
   Pencil,
   Trash2,
   ImagePlus,
-  ChevronDown,
   Users,
   Star,
 } from "lucide-react";
@@ -93,13 +92,6 @@ async function fetchTournament(id: string): Promise<TournamentItem> {
   return data.data;
 }
 
-async function fetchAllTournaments(): Promise<TournamentItem[]> {
-  const { data } = await apiClient.get<{ data: { items: TournamentItem[] } }>(
-    "/tournaments?page_size=100"
-  );
-  return data.data.items;
-}
-
 async function fetchCaptains(): Promise<CaptainUser[]> {
   const { data } = await apiClient.get<{ data: { items: CaptainUser[] } }>(
     "/users?role=CAPTAIN&page_size=200"
@@ -147,57 +139,6 @@ function StatusPill({ isActive }: { isActive: boolean }) {
       <Clock className="h-3 w-3" />
       Inactive
     </span>
-  );
-}
-
-// ── Tournament selector (when no tournamentId) ─────────────────────────────────
-
-function TournamentSelectorView() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState("");
-
-  const q = useQuery<TournamentItem[]>({
-    queryKey: ["tournaments-list"],
-    queryFn: fetchAllTournaments,
-    staleTime: 60_000,
-  });
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-24 px-8 text-center"
-    >
-      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mb-6 shadow-md">
-        <Trophy className="h-10 w-10 text-white" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-2">Select a Tournament</h3>
-      <p className="text-sm text-slate-500 max-w-sm mb-8">
-        Teams are scoped to a tournament. Pick one to view and manage its teams.
-      </p>
-      <div className="flex gap-3 w-full max-w-sm">
-        <div className="relative flex-1">
-          <select
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            <option value="">— Select tournament —</option>
-            {q.data?.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-        </div>
-        <button
-          disabled={!selected}
-          onClick={() => navigate(`/tournaments/${selected}/teams`)}
-          className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors"
-        >
-          Go
-        </button>
-      </div>
-    </motion.div>
   );
 }
 

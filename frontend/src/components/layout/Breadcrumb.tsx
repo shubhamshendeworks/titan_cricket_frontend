@@ -10,7 +10,7 @@ export interface BreadcrumbItem {
   href?: string;
 }
 
-export interface BreadcrumbProps extends React.HTMLAttributes<HTMLElement> {
+export interface BreadcrumbProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'> {
   items: BreadcrumbItem[];
   "data-testid"?: string;
 }
@@ -49,7 +49,7 @@ export function Breadcrumb({ items, className, ...props }: BreadcrumbProps) {
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      {...(props as React.HTMLAttributes<HTMLElement>)}
+      {...props}
     >
       <ol className="flex items-center gap-1 flex-wrap">
         {items.map((item, index) => {

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "gold";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "gold" | "warning";
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,6 +33,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   gold:
     "bg-gold-bright text-navy-900 font-semibold border border-gold-bright " +
     "hover:bg-gold-muted hover:border-gold-muted shadow-sm",
+  warning:
+    "bg-amber-50 text-amber-700 border border-amber-200 " +
+    "hover:bg-amber-600 hover:text-white hover:border-amber-600 shadow-sm",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

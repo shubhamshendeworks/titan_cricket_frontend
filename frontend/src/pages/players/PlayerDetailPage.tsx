@@ -74,10 +74,6 @@ const BOWLING_LABEL: Record<string, string> = {
   LEFT_ARM_SPIN:      "Left Arm Spin",
 };
 
-function fmtPrice(n: number) {
-  return `${n} Pts`;
-}
-
 function getInitials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
 }

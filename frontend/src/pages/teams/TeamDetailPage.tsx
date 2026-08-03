@@ -9,15 +9,10 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import {
-  ArrowLeft,
   Users,
   Wallet,
   ShieldCheck,
   Pencil,
-  Gavel,
-  Trophy,
-  User,
-  X,
   Plus,
 } from "lucide-react";
 

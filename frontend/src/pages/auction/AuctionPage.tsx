@@ -72,12 +72,12 @@ interface AuctionPlayer {
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-  SCHEDULED: { label: "Scheduled",  cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  ACTIVE:    { label: "Live",       cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  PAUSED:    { label: "Paused",     cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  COMPLETED: { label: "Completed",  cls: "bg-slate-100 text-slate-600 border-slate-200" },
-  CANCELLED: { label: "Cancelled",  cls: "bg-red-50 text-red-600 border-red-200" },
+const STATUS_CONFIG: Record<string, { label: string; cls: string; dot: string }> = {
+  SCHEDULED: { label: "Scheduled",  cls: "bg-blue-50 text-blue-700 border-blue-200",     dot: "bg-blue-400" },
+  ACTIVE:    { label: "Live",       cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  PAUSED:    { label: "Paused",     cls: "bg-amber-50 text-amber-700 border-amber-200",   dot: "bg-amber-400" },
+  COMPLETED: { label: "Completed",  cls: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" },
+  CANCELLED: { label: "Cancelled",  cls: "bg-red-50 text-red-600 border-red-200",        dot: "bg-red-400" },
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -917,7 +917,7 @@ function AuctionInner({ tournamentId }: { tournamentId: string }) {
 
 export function AuctionPage() {
   const { tournamentId, loading } = useTournament();
-  const { isAdmin, isCaptain } = usePermissions();
+  const { isCaptain } = usePermissions();
 
   return (
     <motion.div

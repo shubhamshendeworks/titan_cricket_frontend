@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 // ── Input ─────────────────────────────────────────────────────────────────────
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix' | 'suffix'> {
   error?: boolean;
   prefix?: ReactNode;
   suffix?: ReactNode;

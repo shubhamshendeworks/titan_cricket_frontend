@@ -94,7 +94,7 @@ function BrandPanel() {
               TITAN
             </p>
             <p className="tracking-widest uppercase mt-0.5" style={{ fontSize: 10, color: "rgba(255,255,255,0.32)" }}>
-              IPL Cricket Auction
+              Titan Cricket Auction
             </p>
           </div>
         </Link>

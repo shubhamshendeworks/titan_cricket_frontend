@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import titansLogo from "@/assets/branding/titan-logo.png";
-import { Bell, Search, Menu, ChevronDown, LogOut, User } from "lucide-react";
+import { Bell, Search, Menu, ChevronDown, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconButton } from "@/components/ui/Button";
 

@@ -591,7 +591,7 @@ function ImportExcelSection() {
               type="text"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
-              placeholder="e.g. IPL Season 2026"
+              placeholder="e.g. Titan Season 2026"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500"
             />
             <p className="text-xs text-slate-400 mt-1">A new tournament will be created with this name.</p>

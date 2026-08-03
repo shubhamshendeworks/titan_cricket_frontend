@@ -98,7 +98,6 @@ export function useLogout() {
 export function useCurrentUser() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const setUser = useAuthStore((s) => s.setUser);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   return useQuery({
     queryKey: ["auth", "me"],

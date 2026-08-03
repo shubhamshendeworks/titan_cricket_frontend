@@ -58,6 +58,7 @@ interface TeamOption {
   id: string;
   name: string;
   display_name: string | null;
+  logo_url?: string | null;
 }
 
 function dn(t: Pick<TeamOption, "name" | "display_name">): string {
@@ -423,22 +424,32 @@ function SetWinnerModal({
         </div>
 
         {/* Preview */}
-        {winnerId && (
-          <div className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 space-y-1.5">
-            <div className="flex items-center gap-2 text-sm">
-              <Crown className="h-4 w-4 text-amber-500" />
-              <span className="font-semibold text-slate-900">{(() => { const w = teams.find((t) => t.id === winnerId); return w ? dn(w) : ""; })()}</span>
-              <span className="text-slate-400 text-xs">Champion</span>
-            </div>
-            {runnerUpId && (
+        {winnerId && (() => {
+          const w = teams.find((t) => t.id === winnerId);
+          const r = runnerUpId ? teams.find((t) => t.id === runnerUpId) : undefined;
+          return (
+            <div className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 space-y-1.5">
               <div className="flex items-center gap-2 text-sm">
-                <Medal className="h-4 w-4 text-slate-400" />
-                <span className="font-medium text-slate-700">{(() => { const r = teams.find((t) => t.id === runnerUpId); return r ? dn(r) : ""; })()}</span>
-                <span className="text-slate-400 text-xs">Runner-up</span>
+                {w?.logo_url
+                  ? <img src={w.logo_url} alt="" className="h-6 w-6 rounded object-contain shrink-0" />
+                  : <Crown className="h-4 w-4 text-amber-500" />
+                }
+                <span className="font-semibold text-slate-900">{w ? dn(w) : ""}</span>
+                <span className="text-slate-400 text-xs">Champion</span>
               </div>
-            )}
-          </div>
-        )}
+              {r && (
+                <div className="flex items-center gap-2 text-sm">
+                  {r.logo_url
+                    ? <img src={r.logo_url} alt="" className="h-6 w-6 rounded object-contain shrink-0" />
+                    : <Medal className="h-4 w-4 text-slate-400" />
+                  }
+                  <span className="font-medium text-slate-700">{dn(r)}</span>
+                  <span className="text-slate-400 text-xs">Runner-up</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </Modal>
   );
@@ -456,6 +467,7 @@ function TournamentCard({
   onDelete,
   onInitSeason,
   onSetWinner,
+  teamMap = {},
 }: {
   t: Tournament;
   isActive: boolean;
@@ -466,7 +478,17 @@ function TournamentCard({
   onDelete: () => void;
   onInitSeason: () => void;
   onSetWinner: () => void;
+  teamMap?: Record<string, TeamOption>;
 }) {
+  function resolveW(teamId: string | null | undefined, fallback: string | null | undefined): string {
+    if (!teamId && !fallback) return "—";
+    const team = teamId ? teamMap[teamId] : undefined;
+    if (team) return dn(team);
+    return fallback ?? "—";
+  }
+  const hasWinner = !!(t.winner_team_id || t.winner_team_name);
+  const winnerLogo = t.winner_team_id ? (teamMap[t.winner_team_id]?.logo_url ?? null) : null;
+
   const statusMap: Record<string, string> = {
     DRAFT: "DRAFT",
     REGISTRATION: "REGISTRATION",
@@ -530,14 +552,17 @@ function TournamentCard({
       </div>
 
       {/* Winner strip — shown when result is recorded */}
-      {t.winner_team_name && (
+      {hasWinner && (
         <div className="flex items-center gap-3 mb-4 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100">
-          <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+          {winnerLogo
+            ? <img src={winnerLogo} alt="" className="h-6 w-6 rounded object-contain shrink-0" />
+            : <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+          }
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-amber-800 truncate">
-              🏆 {t.winner_team_name}
-              {t.runner_up_team_name && (
-                <span className="text-amber-600 font-normal ml-2">· 🥈 {t.runner_up_team_name}</span>
+              🏆 {resolveW(t.winner_team_id, t.winner_team_name)}
+              {(t.runner_up_team_id || t.runner_up_team_name) && (
+                <span className="text-amber-600 font-normal ml-2">· 🥈 {resolveW(t.runner_up_team_id, t.runner_up_team_name)}</span>
               )}
             </p>
           </div>
@@ -584,7 +609,7 @@ function TournamentCard({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-400 text-amber-700 text-xs font-semibold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-colors"
           >
             <Crown className="h-3.5 w-3.5" />
-            {t.winner_team_name ? "Update Result" : "Set Winner"}
+            {t.winner_team_id || t.winner_team_name ? "Update Result" : "Set Winner"}
           </button>
         )}
 
@@ -635,6 +660,34 @@ export function TournamentPage() {
     },
     staleTime: 30_000,
   });
+
+  const completedWithWinner = (tournamentsQ.data ?? []).filter((t) => t.winner_team_id);
+
+  const winnerTeamsQ = useQuery<Record<string, Record<string, TeamOption>>>({
+    queryKey: ["winner-teams", completedWithWinner.map((t) => t.id).join(",")],
+    queryFn: async () => {
+      const results = await Promise.all(
+        completedWithWinner.map(async (t) => {
+          try {
+            const { data } = await apiClient.get<{ data: { items: TeamOption[] } }>(
+              `/tournaments/${t.id}/teams?page_size=100`
+            );
+            return {
+              id: t.id,
+              teamMap: Object.fromEntries((data.data.items ?? []).map((tm) => [tm.id, tm])),
+            };
+          } catch {
+            return { id: t.id, teamMap: {} };
+          }
+        })
+      );
+      return Object.fromEntries(results.map((r) => [r.id, r.teamMap]));
+    },
+    enabled: completedWithWinner.length > 0,
+    staleTime: 120_000,
+  });
+
+  const winnerTeamsByTournament = winnerTeamsQ.data ?? {};
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/tournaments/${id}`),
@@ -739,6 +792,7 @@ export function TournamentPage() {
               onDelete={() => setDeleteTarget(t)}
               onInitSeason={() => { setInitResult(null); setInitTarget(t); }}
               onSetWinner={() => setWinnerTarget(t)}
+              teamMap={winnerTeamsByTournament[t.id] ?? {}}
             />
           ))}
         </div>
