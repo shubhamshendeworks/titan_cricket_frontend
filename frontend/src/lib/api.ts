@@ -16,21 +16,25 @@ import { useAuthStore } from "@/store/authStore";
 
 const _envApiUrl = import.meta.env.VITE_API_BASE_URL;
 if (!_envApiUrl) {
-  throw new Error(
+  // Log clearly — do NOT throw here. A module-level throw crashes the entire
+  // ES module graph before React mounts, producing a blank white page with no
+  // visible error. A console.error lets the app load so the user sees the
+  // Login page and the browser DevTools message.
+  console.error(
     "[Cricket Platform] VITE_API_BASE_URL is not set.\n" +
-    "  • Development: add it to frontend/.env.local\n" +
-    "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
-    "  Accepted forms:\n" +
-    "    https://titan-cricket-backend.onrender.com\n" +
-    "    https://titan-cricket-backend.onrender.com/api/v1"
+    "  Set it in Vercel → Project → Settings → Environment Variables:\n" +
+    "  VITE_API_BASE_URL = https://titan-cricket-backend.onrender.com/api/v1\n" +
+    "  Then trigger a new Vercel deployment so the build picks up the value."
   );
 }
 // Normalise: strip trailing slash, then guarantee exactly one /api/v1 suffix.
-// Handles both https://host and https://host/api/v1 set in Vercel env vars.
-const _apiBase = _envApiUrl.replace(/\/+$/, "");
+// Handles https://host, https://host/api/v1, and the missing-var case.
+const _apiBase = (_envApiUrl ?? "").replace(/\/+$/, "");
 const BASE_URL: string = _apiBase.endsWith("/api/v1")
   ? _apiBase
-  : `${_apiBase}/api/v1`;
+  : _apiBase
+    ? `${_apiBase}/api/v1`
+    : "/api/v1"; // relative fallback — requests 404 but the UI still renders
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

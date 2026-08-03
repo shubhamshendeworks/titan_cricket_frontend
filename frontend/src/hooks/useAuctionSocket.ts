@@ -82,22 +82,26 @@ export interface ToastEvent {
   message: string;
 }
 
-const _envWsUrl = import.meta.env.VITE_WS_BASE_URL;
-if (!_envWsUrl) {
-  throw new Error(
-    "[Cricket Platform] VITE_WS_BASE_URL is not set.\n" +
-    "  • Development: add it to frontend/.env.local\n" +
-    "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
-    "  Accepted forms:\n" +
-    "    wss://titan-cricket-backend.onrender.com\n" +
-    "    wss://titan-cricket-backend.onrender.com/api/v1"
-  );
+// WS_BASE is resolved lazily inside connect() so a missing VITE_WS_BASE_URL
+// does not throw at module load time. A module-level throw crashes the entire
+// ES module graph before React mounts → blank white page. The WebSocket
+// feature is optional during app startup; the error surfaces only when the
+// Live Auction page is actually opened.
+function resolveWsBase(): string | null {
+  const raw = import.meta.env.VITE_WS_BASE_URL;
+  if (!raw) {
+    console.error(
+      "[Cricket Platform] VITE_WS_BASE_URL is not set.\n" +
+      "  WebSocket (live auction) will not connect.\n" +
+      "  Set it in Vercel → Project → Settings → Environment Variables:\n" +
+      "  VITE_WS_BASE_URL = wss://titan-cricket-backend.onrender.com/api/v1\n" +
+      "  Then trigger a new Vercel deployment."
+    );
+    return null;
+  }
+  const base = raw.replace(/\/+$/, "");
+  return base.endsWith("/api/v1") ? base : `${base}/api/v1`;
 }
-// Normalise: strip trailing slash, then guarantee exactly one /api/v1 suffix.
-const _wsBase = _envWsUrl.replace(/\/+$/, "");
-const WS_BASE: string = _wsBase.endsWith("/api/v1")
-  ? _wsBase
-  : `${_wsBase}/api/v1`;
 
 const INITIAL: AuctionState = {
   status: "SCHEDULED",
@@ -165,6 +169,9 @@ export function useAuctionSocket(tournamentId: string) {
 
   const connect = useCallback(() => {
     if (!token || deadRef.current) return;
+
+    const WS_BASE = resolveWsBase();
+    if (!WS_BASE) return; // env var missing — already logged; skip silently
 
     const url = `${WS_BASE}/ws/auction/${tournamentId}?token=${token}`;
     const ws = new WebSocket(url);
