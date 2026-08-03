@@ -13,9 +13,13 @@ node_modules/
 coverage/
 
 # ── Environment ───────────────────────────────────
+# .env.development   ← committed: safe localhost defaults for `npm run dev`
+# .env.example       ← committed: production reference documentation
 .env
 .env.local
+.env.development.local
 .env.production
+.env.production.local
 
 # ── Logs ──────────────────────────────────────────
 *.log
