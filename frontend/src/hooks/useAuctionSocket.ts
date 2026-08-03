@@ -88,10 +88,16 @@ if (!_envWsUrl) {
     "[Cricket Platform] VITE_WS_BASE_URL is not set.\n" +
     "  • Development: add it to frontend/.env.local\n" +
     "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
-    "  Example value: wss://titan-cricket-backend.onrender.com/api/v1"
+    "  Accepted forms:\n" +
+    "    wss://titan-cricket-backend.onrender.com\n" +
+    "    wss://titan-cricket-backend.onrender.com/api/v1"
   );
 }
-const WS_BASE: string = _envWsUrl;
+// Normalise: strip trailing slash, then guarantee exactly one /api/v1 suffix.
+const _wsBase = _envWsUrl.replace(/\/+$/, "");
+const WS_BASE: string = _wsBase.endsWith("/api/v1")
+  ? _wsBase
+  : `${_wsBase}/api/v1`;
 
 const INITIAL: AuctionState = {
   status: "SCHEDULED",

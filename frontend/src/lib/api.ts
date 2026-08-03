@@ -20,10 +20,17 @@ if (!_envApiUrl) {
     "[Cricket Platform] VITE_API_BASE_URL is not set.\n" +
     "  • Development: add it to frontend/.env.local\n" +
     "  • Production:  add it to Vercel → Settings → Environment Variables\n" +
-    "  Example value: https://titan-cricket-backend.onrender.com/api/v1"
+    "  Accepted forms:\n" +
+    "    https://titan-cricket-backend.onrender.com\n" +
+    "    https://titan-cricket-backend.onrender.com/api/v1"
   );
 }
-const BASE_URL: string = _envApiUrl;
+// Normalise: strip trailing slash, then guarantee exactly one /api/v1 suffix.
+// Handles both https://host and https://host/api/v1 set in Vercel env vars.
+const _apiBase = _envApiUrl.replace(/\/+$/, "");
+const BASE_URL: string = _apiBase.endsWith("/api/v1")
+  ? _apiBase
+  : `${_apiBase}/api/v1`;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
